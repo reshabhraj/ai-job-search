@@ -50,6 +50,9 @@ ALLOWED_PERMISSIONS = {
     "Bash(bun run .agents/skills/jobnet-search/cli/src/cli.ts:*)",
     "Bash(bun run .agents/skills/linkedin-search/cli/src/cli.ts:*)",
     "Bash(bun run .agents/skills/freehire-search/cli/src/cli.ts:*)",
+    # Himalayas (public remote-jobs API) and Y Combinator (Work at a Startup) portal CLIs.
+    "Bash(bun run .agents/skills/himalayas-search/cli/src/cli.ts:*)",
+    "Bash(bun run .agents/skills/ycombinator-search/cli/src/cli.ts:*)",
     "Bash(python salary_lookup.py:*)",
     "Bash(python3 salary_lookup.py:*)",
     "Bash(python tools/rank_state.py:*)",

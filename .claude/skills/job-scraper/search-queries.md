@@ -4,7 +4,11 @@
 
 ## Installed portal CLIs (primary for `/scrape`)
 
-`/scrape` discovers every portal skill under `.agents/skills/*/SKILL.md` and runs its CLI first. Shipped country-agnostic CLIs include `linkedin-search` and `freehire-search`; Danish demos and any skill you add with `/add-portal` are included the same way. You do **not** need a matching `site:` line below for those CLIs to run.
+`/scrape` discovers every portal skill under `.agents/skills/*/SKILL.md` and runs its CLI first. Shipped country-agnostic CLIs include `linkedin-search`, `freehire-search`, `himalayas-search` and `ycombinator-search`; Danish demos and any skill you add with `/add-portal` are included the same way. You do **not** need a matching `site:` line below for those CLIs to run.
+
+Tips for the two remote/startup boards:
+- **`himalayas-search`** (himalayas.app, remote-only, official JSON API): use `--strict` (all-words keyword filter) and `--max-pages 2` with `--jobage 14`; add `-l <your country>` to include roles hiring in your country alongside unrestricted ones. Attribution: keep the Himalayas URL and name Himalayas as the source.
+- **`ycombinator-search`** (ycombinator.com/jobs, YC startup roles from the public listing pages): there is no server-side keyword search, so pass `-q` with `--max-pages 2-3`, and use `--remote` for the remote listing. Every result carries a `visa` field for the Eligibility Gate ("Will sponsor" / "US citizen/visa only" / "US citizenship/visa not required").
 
 The `site:` query templates in this file are the **WebSearch fallback** — for portals without a CLI, company career pages, or when a CLI fails.
 
