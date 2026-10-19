@@ -1,3 +1,7 @@
+> **Extended fork** of [AI Job Search](https://github.com/MadsLorentzen/ai-job-search) by Mads Lorentzen, maintained by [Reshabh Raj](https://github.com/reshabhraj).
+> It adds a plain-bullet ATS check, a one-page CV template and two job boards (Himalayas, Y Combinator).
+> See **[FORK.md](FORK.md)** for what's new and how to get started; the original README follows.
+
 <p align="center">
   <img src="assets/mascot/pip_flight_loop.gif" alt="Pip, the courier bird" width="200">
 </p>
@@ -95,7 +99,7 @@ python3 tools/install_portal_clis.py   # Windows: python tools\install_portal_cl
 
 It runs `bun install` in every portal CLI under `.agents/skills/*/cli/` - discovered, not listed, so a portal you add with `/add-portal` or copy from another fork is included on a fresh clone. A CLI whose `package.json` declares an install-time lifecycle script is skipped and reported rather than run. `--dry-run` shows what it would install.
 
-For `linkedin-search` and `freehire-search` the install is optional: both have zero runtime dependencies and run with plain `bun`; `bun install` only pulls TypeScript dev types.
+For `linkedin-search`, `freehire-search`, `himalayas-search` and `ycombinator-search` the install is optional: all four have zero runtime dependencies and run with plain `bun`; `bun install` only pulls TypeScript dev types.
 
 ### 3. Set up your profile
 
@@ -186,7 +190,9 @@ ai-job-search/
 │   ├── jobindex-search/               # Jobindex.dk (Denmark)
 │   ├── jobnet-search/                 # Jobnet.dk (Denmark, government portal)
 │   ├── linkedin-search/               # LinkedIn public job listings (country-agnostic)
-│   └── freehire-search/               # freehire.me tech job aggregator (multi-market, REST API)
+│   ├── freehire-search/               # freehire.me tech job aggregator (multi-market, REST API)
+│   ├── himalayas-search/              # Himalayas remote jobs (worldwide, public JSON API)
+│   └── ycombinator-search/            # Y Combinator "Work at a Startup" listings (global)
 ├── cv/
 │   └── main_example.tex               # moderncv LaTeX template
 ├── cover_letters/
@@ -302,10 +308,12 @@ Give it your local job board's URL. The command investigates the portal (search-
 
 Maintaining a fork adapted to your market or language? Add it to the [Community forks & adaptations](https://github.com/MadsLorentzen/ai-job-search/discussions/78) thread so others can find it.
 
-For **country-agnostic** starting points outside Denmark, the repo ships two portal skills alongside the Danish demos:
+For **country-agnostic** starting points outside Denmark, the repo ships four portal skills alongside the Danish demos (`himalayas-search` and `ycombinator-search` are additions in this fork, see [FORK.md](FORK.md)):
 
 - **`linkedin-search`** — built on LinkedIn's public, unauthenticated `jobs-guest` endpoints. Field-agnostic, **zero runtime dependencies** (runs with just `bun`), and takes the search location as an explicit flag, so it works for any market out of the box (`-l "Berlin, Germany"`, `-l "Mumbai, Maharashtra, India"`, `-l "Remote"`, …). Intended for **personal use only** — automated access is against LinkedIn's Terms of Service, so keep volume low. See `.agents/skills/linkedin-search/SKILL.md`.
 - **`freehire-search`** — queries the [freehire.me](https://freehire.me) aggregator's public REST API (JSON, no API key). Tech-focused (software, data, engineering, DevOps, remote), multi-market via facet flags (`--region`, `--country`, `--remote`), and **zero runtime dependencies**. Unlike the HTML-scraping Danish portals, results come back structured (skills, seniority, category). The backend is MIT-licensed and [self-hostable](https://github.com/strelov1/freehire) — point `FREEHIRE_API_URL` at your own instance if you prefer. See `.agents/skills/freehire-search/SKILL.md`.
+- **`himalayas-search`** — queries the free, documented public JSON API of [Himalayas](https://himalayas.app), a remote-only board with employers worldwide (no API key, **zero runtime dependencies**). Filters for keyword, hiring country (`-l Germany`), worldwide-open roles, seniority and employment type. Himalayas' terms: link back to each posting and name Himalayas as the source, and do not re-post its jobs to other job sites. See `.agents/skills/himalayas-search/SKILL.md`.
+- **`ycombinator-search`** — reads the public "Work at a Startup" listing pages on ycombinator.com for roles at Y Combinator companies (San Francisco, New York, London, India, remote and more), with salary, equity, experience and visa-sponsorship fields on every listing. **Zero runtime dependencies**, and intended for **personal use only** — keep volume low. See `.agents/skills/ycombinator-search/SKILL.md`.
 
 ### Extending the framework: portals, templates, criteria - and borrowing from other forks
 
