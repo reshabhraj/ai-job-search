@@ -22,6 +22,14 @@
 \colorlet{namecolor}{color1}
 \renewcommand*{\sectionstyle}[1]{{\sectionfont\color{color1}#1}}
 
+% Plain bullet for top-level list items. \moderncvstyle{banking} loads the
+% FontAwesome icon set (moderncviconssymbols -> moderncviconsawesome), which
+% redefines \labelitemi as a \faIcon circle. That glyph reaches the PDF text
+% layer as an emoji code point (U+1F7E4 under pypdf) and renders as "O" or a
+% box in some viewers and ATS parsers. Restore moderncv.cls's own default so
+% the marker extracts as U+2022; nested markers stay "-".
+\renewcommand*{\labelitemi}{\strut\textcolor{color1}{\large\rmfamily\textbullet}}
+
 \usepackage[utf8]{inputenc}
 % pdflatex fallback only (the documented engine is lualatex, which skips this
 % branch). Without T1 font encoding pdflatex builds accented letters with
@@ -56,7 +64,8 @@
 \address{[Your Address, City, Country]}{}{}
 \phone[mobile]{[+XX XXXXXXXXXX]}
 \email{[your.email@example.com]}
-\extrainfo{\href{[https://linkedin.com/in/your-profile]}{LinkedIn}, \href{[https://github.com/your-username]}{GitHub}}
+% Link text is the URL itself: an ATS reads the text layer, not the link target.
+\extrainfo{\href{[https://linkedin.com/in/your-profile]}{[linkedin.com/in/your-profile]}\quad{\rmfamily\textbullet}\quad\href{[https://github.com/your-username]}{[github.com/your-username]}}
 
 \begin{document}
 
@@ -177,14 +186,7 @@ Thesis: ``[Thesis Title].'' [Brief description of research focus.]
 \item{\textbf{[Award Name]} -- [Event/Organization] ([Year]).}
 \end{itemize}
 
-% ============================================================
-%     REFERENCES
-% ============================================================
-
-\section{References}
-\vspace{1pt}
-\begin{itemize}
-\item{Available upon request.}
-\end{itemize}
+% References are omitted by default (see 05-cv-templates.md, "References");
+% add a section only when a posting asks for them.
 
 \end{document}

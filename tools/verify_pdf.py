@@ -10,10 +10,16 @@ Unicode normalization form (NFC), and the typographic substitutions LaTeX makes 
 the source text. The fold is comparison-time only - the `--dump-text` output stays
 the raw text layer an ATS parser actually sees.
 
-`--ascii-dates` is the one check that deliberately does NOT fold: it scans the raw
+`--ascii-dates` is one of two checks that deliberately do NOT fold: it scans the raw
 layer for a year joined to a Unicode dash - the en-dash LaTeX makes from `--`, which
 a Workday import dropped along with the date (`05-cv-templates.md`, "Date fields
 must be ASCII ranges") - and fails naming each hit with its code point.
+
+`--plain-bullets` is the other: it fails when a line of the raw layer opens with a
+lone symbol that is not a plain list marker. moderncv's banking style swaps its
+bullet for a FontAwesome circle that reaches the layer as U+1F7E4, an emoji code
+point that renders as "O" or a box in some viewers and parsers while the page
+looks fine (`05-cv-templates.md`, "List marker override").
 """
 
 import argparse
@@ -170,6 +176,35 @@ def find_non_ascii_date_ranges(text):
     return hits
 
 
+# Markers an ATS reads as a list bullet: the bullet itself, the middle dot, the
+# dashes a nested moderncv list or a hand-typed list uses, and the asterisk.
+PLAIN_LIST_MARKERS = "•·–—-*"
+# A line may legitimately open with a quote or bracket before a word.
+_LINE_OPENERS = "([{\"'‘’“”"
+# A line whose first visible character is a lone non-word symbol followed by
+# whitespace or the end of the line: the shape a list marker takes in the layer.
+LONE_SYMBOL_LINE = re.compile(r"^[^\S\n]*([^\w\s])(?=[^\S\n]|$)", re.MULTILINE)
+
+
+def find_odd_list_markers(text):
+    """Return (line, marker) for each line opening with a lone non-plain symbol.
+
+    Works on the raw text layer, like `find_non_ascii_date_ranges`. A symbol glued
+    to the next character ("(remote)", "+45 1234") is not a lone marker and is left
+    alone; so are plain bullets, dashes, asterisks and opening quotes/brackets.
+    """
+    hits = []
+    for match in LONE_SYMBOL_LINE.finditer(text):
+        marker = match.group(1)
+        if marker in PLAIN_LIST_MARKERS or marker in _LINE_OPENERS:
+            continue
+        line_start = text.rfind("\n", 0, match.start()) + 1
+        line_end = text.find("\n", match.end())
+        line = text[line_start : line_end if line_end != -1 else len(text)]
+        hits.append((" ".join(line.split()), marker))
+    return hits
+
+
 def _extract_pypdf(pdf_path):
     """Return (text, pages) or None if pypdf is unavailable, raises, or yields no text."""
     try:
@@ -213,6 +248,7 @@ def verify_pdf(
     required_text=(),
     dump_text=None,
     ascii_dates=False,
+    plain_bullets=False,
 ):
     pdf_path = Path(pdf_path)
     if not pdf_path.is_file():
@@ -262,6 +298,17 @@ def verify_pdf(
                 f"ASCII hyphen (05-cv-templates.md, 'Date fields must be ASCII ranges'): "
                 f"{listed} (extractor: {extractor})"
             )
+
+    if plain_bullets:
+        hits = find_odd_list_markers(extracted_text)
+        if hits:
+            listed = "; ".join(f"U+{ord(marker):04X} in {line[:80]!r}" for line, marker in hits)
+            raise VerificationError(
+                f"{len(hits)} list marker(s) are not a plain bullet - some viewers and ATS "
+                f"parsers show them as 'O' or a box; keep the \\labelitemi override from "
+                f"05-cv-templates.md ('List marker override') in the preamble: "
+                f"{listed} (extractor: {extractor})"
+            )
     return extractor, extracted_text, actual_pages
 
 
@@ -301,6 +348,15 @@ def build_parser():
             "never folds, unlike --contains"
         ),
     )
+    parser.add_argument(
+        "--plain-bullets",
+        action="store_true",
+        help=(
+            "fail if a line of the raw text layer opens with a lone symbol that is "
+            "not a plain list marker (bullet, dash, asterisk), such as the emoji "
+            "circle moderncv's icon set puts in place of the bullet"
+        ),
+    )
     return parser
 
 
@@ -328,6 +384,7 @@ def main(argv=None):
             args.contains,
             dump_text=args.dump_text,
             ascii_dates=args.ascii_dates,
+            plain_bullets=args.plain_bullets,
         )
     except VerificationError as exc:
         print(f"Error: {args.pdf}: {exc}", file=sys.stderr)

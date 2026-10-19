@@ -107,10 +107,10 @@ Also read the most recent existing CV and cover letter files for concrete struct
 
 ### CV (`cv/main_<company>_<role><CV_EXT>`)
 - In the **CV language from the profile** (the `CV language:` line in CLAUDE.md's Identity section). When the profile does not set one, default to **English**. Never switch language per posting - the CV language is a profile-level choice, so all CVs stay consistent and reusable
-- Follow the moderncv/banking format from `05-cv-templates.md`
+- Follow the active template from `05-cv-templates.md` (its `ACTIVE-TEMPLATE` skeleton and manifest when present, otherwise the stock moderncv/banking format)
 - Tailor the profile statement and experience bullets to the specific role
 - Reframe skills and achievements to match job requirements
-- Keep to 2 pages
+- Keep to the active template's page limit (stock: 2 pages)
 - **Grounding Audit:** Before writing to disk, audit all tailored bullet points against the union of three sources: `.claude/skills/job-application-assistant/01-candidate-profile.md` + the master CV (`cv/main_example.tex`) + `CLAUDE.md`'s Candidate Profile section to verify that all dates, roles, and metrics match exactly (zero profile drift or fabrication).
 
 ### Cover Letter (`cover_letters/cover_<company>_<role><COVER_EXT>`)
@@ -273,7 +273,7 @@ The thresholds are calibrated for the stock moderncv and `cover.cls` geometry; a
 Then read both PDFs via the Read tool and verify:
 
 **CV (`cv/main_<company>_<role>.pdf`):**
-- [ ] Exactly 2 pages (not 1, not 3)
+- [ ] Exactly the active template's page limit (stock: 2 pages, not 1, not 3)
 - [ ] No orphaned `\cventry` titles — a job/education title line must never sit alone at the bottom of page 1 with its bullets on page 2. This is the most common failure.
 - [ ] Section headings are not isolated at the top of page 2 with only 1-2 lines below
 - [ ] No awkward whitespace gaps
@@ -304,8 +304,12 @@ An ATS parser reads the PDF's embedded **text layer**, not the rendered page —
 **1. Extract the text layer:**
 
 ```bash
-python tools/verify_pdf.py cv/main_<company>_<role>.pdf --ascii-dates --dump-text cv/main_<company>_<role>.txt
+python tools/verify_pdf.py cv/main_<company>_<role>.pdf --ascii-dates --plain-bullets --dump-text cv/main_<company>_<role>.txt
 ```
+
+When the CV's contact line lists a LinkedIn or GitHub URL, append `--contains "linkedin.com/in/"` and/or `--contains "github.com/"` to the same command: they fail when the contact line prints a label like `LinkedIn` instead of the URL, usually from copying an older CV's `\extrainfo` line forward.
+
+`--plain-bullets` fails when a line of the raw layer opens with a lone symbol that is not a plain bullet (`•`), a dash or an asterisk, naming the code point: U+1F7E4 means the moderncv FontAwesome circle is back, because the `\labelitemi` override from `05-cv-templates.md` is missing from the preamble.
 
 `--ascii-dates` is the date-range check from `05-cv-templates.md` ("Date fields must be ASCII ranges"): it exits 1 if the raw text layer has a year joined to a Unicode dash - the en-dash LaTeX makes from `--`, which a Workday import dropped together with the date - naming each hit and its code point. It reads the raw layer, not the folded comparison `--contains` uses, which is why `--contains "2016-2024"` cannot catch this. The dump is written before the check runs, so a failure still leaves the `.txt`. Fix a hit in the `<CV_EXT>` date argument (a single ASCII hyphen), then re-run 5a-5c and re-extract.
 
@@ -318,7 +322,8 @@ cd cv && pdftotext -layout -enc UTF-8 main_<company>_<role>.pdf main_<company>_<
 **2. Parseability checks** on the extracted text:
 
 - [ ] **Text extracted at all**, with no garbage runs: no `(cid:NNN)` markers, no `�` replacement characters, no stretches of missing text that are visible in the PDF
-- [ ] **Email and phone survive as literal text.** Icon fonts extract as glyph names (the stock template's contact line extracts as `MOBILE-ALT [+XX ...] • Envelope [your.email@...]`) — that noise is harmless, but the actual address and digits must be present. A contact detail carried only by an icon or a hyperlink target (like the `LinkedIn` link text) is invisible to an ATS; the email must be printed as text.
+- [ ] **Email and phone survive as literal text.** Icon fonts extract as glyph names (the stock template's contact line extracts as `MOBILE-ALT [+XX ...] • Envelope [your.email@...]`) — that noise is harmless, but the actual address and digits must be present. A contact detail carried only by an icon or a hyperlink target (a link whose visible text is a label like `LinkedIn`) is invisible to an ATS; the email, and any `linkedin.com/in/...` or `github.com/...` URL the contact line lists, must be printed as text.
+- [ ] **List markers are plain** — bullet lines start with `•` (U+2022) or `-`, and `--plain-bullets` above exited 0.
 - [ ] **Reading order matches the visual order** — section headings appear in the same sequence as on the page, and lines from different sections are not interleaved. The stock banking template is single-column and safe; custom templates registered via `/add-template` with sidebars or multi-column layouts are where this breaks.
 - [ ] **Dates recognizable and ASCII-joined** — each role and degree has its years present in the extraction with a start *and* an end, and `--ascii-dates` above exited 0. A bare single year (`2016`) is the half the flag cannot see: it imports as a start with no end, so read for it.
 

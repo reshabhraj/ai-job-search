@@ -158,7 +158,7 @@ Insert (or replace, if one exists) this block immediately after the file's H1 ti
 <!-- BEGIN ACTIVE-TEMPLATE (managed by /add-template - do not edit by hand) -->
 > **Active template override: `<name>`**
 >
-> A custom template is active. Where this block conflicts with the stock guidance below, this block wins. Structural advice below (tailoring, page-budget, cutting rules) still applies.
+> A custom template is active. Where this block conflicts with the stock guidance below, this block wins. Structural advice below (tailoring, cutting rules) still applies; the page-budget table is the stock 2-page budget, so use the manifest's budget when the page limit differs.
 >
 > - **Template skeleton:** `templates/<type>/<name>/template<source-extension>` — use this as the structural reference instead of the stock template
 > - **Manifest:** `templates/<type>/<name>/TEMPLATE.md` — read this for style rules and known pitfalls before drafting

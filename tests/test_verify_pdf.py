@@ -9,6 +9,7 @@ from tools.verify_pdf import (
     build_parser,
     extract_text_layer,
     find_non_ascii_date_ranges,
+    find_odd_list_markers,
     normalize_text,
     parse_page_count,
     run_tool,
@@ -161,6 +162,43 @@ class FindNonAsciiDateRangesTests(unittest.TestCase):
         )
 
 
+class FindOddListMarkersTests(unittest.TestCase):
+    """`--plain-bullets` reads the raw layer for list markers an ATS mangles.
+
+    Measured on the stock moderncv banking CV under lualatex: the top-level
+    `itemize` marker is a FontAwesome circle that pypdf extracts as U+1F7E4
+    LARGE BROWN CIRCLE, and viewers and parsers show it as "O" or a box. The
+    `\\labelitemi` override in 05-cv-templates.md turns it back into U+2022.
+    """
+
+    def test_emoji_circle_marker_is_reported_with_its_code_point(self):
+        hits = find_odd_list_markers("\U0001f7e4 Data Engineering : SQL, Airflow\n")
+        self.assertEqual(hits, [("\U0001f7e4 Data Engineering : SQL, Airflow", "\U0001f7e4")])
+
+    def test_plain_bullet_dash_and_asterisk_markers_are_clean(self):
+        text = "• Top-level item\n- Nested item\n– Dash item\n* Star item\n"
+        self.assertEqual(find_odd_list_markers(text), [])
+
+    def test_headings_and_prose_lines_are_clean(self):
+        text = "Professional Experience\nExample Corp, Aarhus\n"
+        self.assertEqual(find_odd_list_markers(text), [])
+
+    def test_symbols_glued_to_the_next_character_are_not_markers(self):
+        # Contact lines and prose open with symbols that are not list markers.
+        text = "+45 12345678\n(remote) Aarhus\n“quoted” line\n$75k salary\n"
+        self.assertEqual(find_odd_list_markers(text), [])
+
+    def test_opening_quote_followed_by_space_is_clean(self):
+        self.assertEqual(find_odd_list_markers("“ quoted line\n"), [])
+
+    def test_every_offending_line_is_reported_in_document_order(self):
+        text = "\U0001f7e4 First\n• Fine\n○ Second\n"
+        self.assertEqual(
+            [marker for _, marker in find_odd_list_markers(text)],
+            ["\U0001f7e4", "○"],
+        )
+
+
 class VerifyPdfTests(unittest.TestCase):
     def setUp(self):
         self.temp_dir = tempfile.TemporaryDirectory()
@@ -281,6 +319,43 @@ class VerifyPdfTests(unittest.TestCase):
     def test_ascii_dates_flag_is_off_by_default_and_parses(self):
         self.assertFalse(build_parser().parse_args(["x.pdf"]).ascii_dates)
         self.assertTrue(build_parser().parse_args(["x.pdf", "--ascii-dates"]).ascii_dates)
+
+    @patch("tools.verify_pdf._extract_pypdf", return_value=None)
+    @patch("tools.verify_pdf.run_tool")
+    def test_plain_bullets_rejects_the_emoji_marker(self, mock_run_tool, _pypdf):
+        mock_run_tool.side_effect = ["\U0001f7e4 Built pipelines\n", "Pages:          1\n"]
+
+        with self.assertRaisesRegex(VerificationError, r"U\+1F7E4.*labelitemi|labelitemi.*U\+1F7E4"):
+            verify_pdf(self.pdf, plain_bullets=True)
+
+    @patch("tools.verify_pdf._extract_pypdf", return_value=None)
+    @patch("tools.verify_pdf.run_tool")
+    def test_plain_bullets_accepts_plain_markers(self, mock_run_tool, _pypdf):
+        mock_run_tool.side_effect = ["• Built pipelines\n- Nested detail\n", "Pages:          1\n"]
+
+        verify_pdf(self.pdf, plain_bullets=True)
+
+    @patch("tools.verify_pdf._extract_pypdf", return_value=None)
+    @patch("tools.verify_pdf.run_tool")
+    def test_emoji_marker_passes_when_the_flag_is_off(self, mock_run_tool, _pypdf):
+        mock_run_tool.side_effect = ["\U0001f7e4 Built pipelines\n", "Pages:          1\n"]
+
+        verify_pdf(self.pdf)
+
+    @patch("tools.verify_pdf._extract_pypdf", return_value=None)
+    @patch("tools.verify_pdf.run_tool")
+    def test_plain_bullets_still_writes_the_dump_before_failing(self, mock_run_tool, _pypdf):
+        mock_run_tool.side_effect = ["\U0001f7e4 Built pipelines\n", "Pages:          1\n"]
+        dump = Path(self.temp_dir.name) / "dump.txt"
+
+        with self.assertRaises(VerificationError):
+            verify_pdf(self.pdf, dump_text=dump, plain_bullets=True)
+
+        self.assertEqual(dump.read_text(encoding="utf-8"), "\U0001f7e4 Built pipelines\n")
+
+    def test_plain_bullets_flag_is_off_by_default_and_parses(self):
+        self.assertFalse(build_parser().parse_args(["x.pdf"]).plain_bullets)
+        self.assertTrue(build_parser().parse_args(["x.pdf", "--plain-bullets"]).plain_bullets)
 
     def test_rejects_missing_pdf(self):
         with self.assertRaisesRegex(VerificationError, "PDF does not exist"):
