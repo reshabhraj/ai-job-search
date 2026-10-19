@@ -1,0 +1,203 @@
+%-------------------------
+% One-page CV template (jake-onepage)
+% Based on Jake's Resume by Jake Gutierrez, https://github.com/jakegut/resume
+% (MIT), itself based on https://github.com/sb2nov/resume.
+% Switch to it with /add-template --use jake-onepage; TEMPLATE.md next to this
+% file holds the compile command, style rules and known pitfalls, and LICENSE
+% holds the MIT notices of the two originals.
+%
+% Adjustments from the original, all recorded in TEMPLATE.md:
+%   - a4paper (the original is letterpaper)
+%   - pdfTeX-only ToUnicode lines wrapped in \ifpdftex (compiled with lualatex)
+%   - \hypersetup{pdftitle=...} so Poppler's pdftotext -bbox works
+%   - \textbar instead of $|$ in the header (text-mode separator for ATS)
+%   - a Summary block after the header and a Languages and Honors block
+%------------------------
+
+\documentclass[a4paper,11pt]{article}
+
+\usepackage{latexsym}
+\usepackage[empty]{fullpage}
+\usepackage{titlesec}
+\usepackage{marvosym}
+\usepackage[usenames,dvipsnames]{color}
+\usepackage{verbatim}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+\usepackage{fancyhdr}
+\usepackage[english]{babel}
+\usepackage{tabularx}
+\usepackage{iftex}
+% pdfTeX only: gives pdflatex a ToUnicode map so the text layer is readable.
+% lualatex loads Latin Modern OpenType with TU encoding, where the map is
+% native, and these primitives do not exist there.
+\ifpdftex
+  \input{glyphtounicode}
+  \pdfgentounicode=1
+\fi
+% Poppler's pdftotext -bbox (tools/verify_layout.py) needs a PDF title.
+\hypersetup{pdftitle={[YOUR_NAME] - CV}, pdfpagemode=UseNone}
+
+%----------FONT OPTIONS----------
+% Default: Latin Modern (ships with every TeX distribution). Alternatives from
+% the original template, each needing its package installed:
+% \usepackage[sfdefault]{FiraSans}
+% \usepackage[sfdefault]{roboto}
+% \usepackage[sfdefault]{noto-sans}
+% \usepackage[default]{sourcesanspro}
+% \usepackage{CormorantGaramond}
+% \usepackage{charter}
+
+\pagestyle{fancy}
+\fancyhf{} % clear all header and footer fields
+\fancyfoot{}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+% Optional data-protection consent footer. Some European employers expect a
+% short line consenting to the processing of the personal data in the CV under
+% the GDPR (and national privacy law where it applies). Uncomment and fill in
+% the wording for that market; it sits in the footer, so it costs no body space.
+% \fancyfoot[C]{\scriptsize [DATA_PROTECTION_CONSENT]}
+
+% Adjust margins
+\addtolength{\oddsidemargin}{-0.5in}
+\addtolength{\evensidemargin}{-0.5in}
+\addtolength{\textwidth}{1in}
+\addtolength{\topmargin}{-.5in}
+\addtolength{\textheight}{1.0in}
+
+\urlstyle{same}
+
+\raggedbottom
+\raggedright
+\setlength{\tabcolsep}{0in}
+
+% Sections formatting
+\titleformat{\section}{
+  \vspace{-4pt}\scshape\raggedright\large
+}{}{0em}{}[\color{black}\titlerule \vspace{-5pt}]
+
+%-------------------------
+% Custom commands
+\newcommand{\resumeItem}[1]{
+  \item\small{
+    {#1 \vspace{-2pt}}
+  }
+}
+
+% Argument order (the original template's convention; the bold first line is
+% what the reader should see first):
+%   Experience: \resumeSubheading{Title}{Dates}{Organisation}{Location}
+%   Education:  \resumeSubheading{Institution}{Location}{Degree}{Dates}
+\newcommand{\resumeSubheading}[4]{
+  \vspace{-2pt}\item
+    \begin{tabular*}{0.97\textwidth}[t]{l@{\extracolsep{\fill}}r}
+      \textbf{#1} & #2 \\
+      \textit{\small#3} & \textit{\small #4} \\
+    \end{tabular*}\vspace{-7pt}
+}
+
+\newcommand{\resumeSubSubheading}[2]{
+    \item
+    \begin{tabular*}{0.97\textwidth}{l@{\extracolsep{\fill}}r}
+      \textit{\small#1} & \textit{\small #2} \\
+    \end{tabular*}\vspace{-7pt}
+}
+
+\newcommand{\resumeProjectHeading}[2]{
+    \item
+    \begin{tabular*}{0.97\textwidth}{l@{\extracolsep{\fill}}r}
+      \small#1 & #2 \\
+    \end{tabular*}\vspace{-7pt}
+}
+
+\newcommand{\resumeSubItem}[1]{\resumeItem{#1}\vspace{-4pt}}
+
+\renewcommand\labelitemii{$\vcenter{\hbox{\tiny$\bullet$}}$}
+
+\newcommand{\resumeSubHeadingListStart}{\begin{itemize}[leftmargin=0.15in, label={}]}
+\newcommand{\resumeSubHeadingListEnd}{\end{itemize}}
+\newcommand{\resumeItemListStart}{\begin{itemize}}
+\newcommand{\resumeItemListEnd}{\end{itemize}\vspace{-5pt}}
+
+%-------------------------------------------
+%%%%%%  RESUME STARTS HERE  %%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{document}
+
+%----------HEADING----------
+% Every contact detail is printed as text: an ATS reads the text layer, not
+% link targets, so the LinkedIn and GitHub link text is the URL path itself.
+\begin{center}
+    \textbf{\Huge \scshape [YOUR_NAME]} \\ \vspace{1pt}
+    \small [YOUR_LOCATION] \textbar{} [YOUR_PHONE] \textbar{} \href{mailto:[YOUR_EMAIL]}{\underline{[YOUR_EMAIL]}} \textbar{}
+    \href{[YOUR_LINKEDIN_URL]}{\underline{[YOUR_LINKEDIN_PATH]}} \textbar{}
+    \href{[YOUR_GITHUB_URL]}{\underline{[YOUR_GITHUB_PATH]}}
+\end{center}
+
+%-----------SUMMARY-----------
+% Two sentences, at most 45 words: scope and specialisation. Numbers belong in
+% the experience bullets.
+\section{Summary}
+ \begin{itemize}[leftmargin=0.15in, label={}]
+    \small{\item{[SUMMARY]}}
+ \end{itemize}
+
+%-----------TECHNICAL SKILLS-----------
+% Four dense keyword lines; use the posting's own terms where they truthfully apply.
+\section{Technical Skills}
+ \begin{itemize}[leftmargin=0.15in, label={}]
+    \small{\item{
+     \textbf{[SKILL_GROUP_1]}{: [SKILLS_1]} \\
+     \textbf{[SKILL_GROUP_2]}{: [SKILLS_2]} \\
+     \textbf{[SKILL_GROUP_3]}{: [SKILLS_3]} \\
+     \textbf{[SKILL_GROUP_4]}{: [SKILLS_4]}
+    }}
+ \end{itemize}
+
+%-----------EXPERIENCE-----------
+% Dates: single ASCII hyphen (Mar 2026 - Present), never -- (the en-dash fails
+% the --ascii-dates check).
+\section{Experience}
+  \resumeSubHeadingListStart
+
+    \resumeSubheading
+      {[JOB_TITLE_1]}{[JOB_DATES_1]}
+      {[EMPLOYER_1]}{[JOB_LOCATION_1]}
+      \resumeItemListStart
+        \resumeItem{[BULLET_1_1]}
+        \resumeItem{[BULLET_1_2]}
+        \resumeItem{[BULLET_1_3]}
+      \resumeItemListEnd
+
+    \resumeSubheading
+      {[JOB_TITLE_2]}{[JOB_DATES_2]}
+      {[EMPLOYER_2]}{[JOB_LOCATION_2]}
+      \resumeItemListStart
+        \resumeItem{[BULLET_2_1]}
+        \resumeItem{[BULLET_2_2]}
+      \resumeItemListEnd
+
+  \resumeSubHeadingListEnd
+
+%-----------EDUCATION-----------
+\section{Education}
+  \resumeSubHeadingListStart
+    \resumeSubheading
+      {[INSTITUTION_1]}{[EDU_LOCATION_1]}
+      {[DEGREE_1]}{[EDU_DATES_1]}
+    \resumeSubheading
+      {[INSTITUTION_2]}{[EDU_LOCATION_2]}
+      {[DEGREE_2]}{[EDU_DATES_2]}
+  \resumeSubHeadingListEnd
+
+%-----------LANGUAGES AND HONORS-----------
+\section{Languages and Honors}
+ \begin{itemize}[leftmargin=0.15in, label={}]
+    \small{\item{
+     \textbf{Languages}{: [LANGUAGES]} \\
+     \textbf{Honors}{: [HONORS]}
+    }}
+ \end{itemize}
+
+\end{document}

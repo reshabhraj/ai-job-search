@@ -24,3 +24,7 @@ templates/
 - `/add-template --list` shows registered templates; `/add-template --use <name>` switches; `/add-template --use default` reverts to the stock templates.
 
 Templates are stored with `[PLACEHOLDER]` tokens instead of personal data, so they are safe to commit and share.
+
+## Bundled template
+
+- `cv/jake-onepage/`: a one-page, single-column CV based on Jake's Resume (MIT; both license notices are in its `LICENSE`). It prints every contact detail as text and extracts plain `•` bullets. Switch to it with `/add-template --use jake-onepage`; `/add-template --use default` returns to the stock 2-page moderncv.
